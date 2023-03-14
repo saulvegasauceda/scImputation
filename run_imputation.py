@@ -29,3 +29,12 @@ def run_parameter_sweep(true_adata, dropout_adata, t_selections, knn_dist_select
                         })
     return results
 
+    # multiprocessing package
+
+
+    from multiprocessing import Pool
+
+
+    pool = Pool(os.cpu_count() // 3)
+    pool.map()
+    
