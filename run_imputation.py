@@ -1,8 +1,28 @@
 import impute
 import numpy as np
 import pandas as pd
+from multiprocessing import Pool
 
-np.random.seed(1738)
+
+
+if __name__ == '__main__':
+    np.random.seed(1738)
+
+
+
+
+    # Run multiprocessing
+    pool = Pool(os.cpu_count() // 3)
+    pool.map()
+    with Pool(os.cpu_count() // 3) as p:
+        pool.map()
+
+def f(x):
+    return x*x
+
+if __name__ == '__main__':
+    with Pool(5) as p:
+        print(p.map(f, [1, 2, 3]))
 
 # Defining hyperparams
 t_selections = [i for i in range(1,7)]
@@ -29,12 +49,4 @@ def run_parameter_sweep(true_adata, dropout_adata, t_selections, knn_dist_select
                         })
     return results
 
-    # multiprocessing package
-
-
-    from multiprocessing import Pool
-
-
-    pool = Pool(os.cpu_count() // 3)
-    pool.map()
     

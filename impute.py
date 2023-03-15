@@ -28,13 +28,14 @@ def create_synthetic_cells(rna_species_char, p, number_cells=100):
     ground_truth_df = ground_truth_df.set_axis([f"Gene {g + 1}" for g in range(len(ground_truth_df.columns))], axis=1, inplace=False)
     return ground_truth_df
 
-sim_capture = lambda x, p: sum(choices([0, 1], weights=[1-p, p])[0] for _ in range(x))
+
 
 def artificially_sample_cells(true_cells_df, capture_rate):
     '''
     Simulating Bernoulli sampling with synthetic dataset 
     where p = capture_rate (p := probability RNA is included in set)
     '''
+    sim_capture = lambda x, p: sum(choices([0, 1], weights=[1-p, p])[0] for _ in range(x))
     return true_cells_df.applymap(lambda x: sim_capture(x, p=capture_rate))
 
 def processing(counts_adata, target_sum=None):
@@ -82,8 +83,8 @@ def run_magic_evaluation_pipeline(true_adata, procesed_adata, t, knn_dist, n_job
     error = calculate_error(true_adata, imputed_adata)
     return error
 
-def run_magic_evaluation_pipeline_synth_data(procesed_adata, t, knn_dist, n_jobs=-1):
+def run_magic_evaluation_pipeline_synth_data(t, knn_dist, n_jobs=-1):
     '''
     Partial function on the same ground truth dataset
     '''
-    return run_magic_evaluation_pipeline(synth_data, procesed_adata, t, knn_dist, n_jobs)
+    return run_magic_evaluation_pipeline(true_adata=synth_data, procesed_adata=procesed_adata, t=t, knn_dist=knn_dist, n_jobs=n_jobs)
