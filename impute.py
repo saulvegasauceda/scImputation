@@ -60,17 +60,18 @@ def run_create_synthetic_dataset_pipeline(rna_species_char, number_cells=100, ca
 
 np.random.seed(1738)
 
-Rna_species_characteristic_numbers = [1, 3, 10, 30, 100, 300, 1000, 3000, 10000]
+Rna_species_characteristic_numbers = [1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 20, 40, 60, 300, 40]
 
 print("Processing generating synthetic data...")
 ground_truth_adata, tenx_synthetic_adata = run_create_synthetic_dataset_pipeline(
                                                 Rna_species_characteristic_numbers, 
-                                                number_cells=100, 
+                                                number_cells=200, 
                                                 capture_rate=0.6,
                                                 p=0.5
                                             )
-TARGET_SUM = 10_000
+TARGET_SUM = 1_000
 sc.pp.normalize_total(ground_truth_adata,  target_sum=TARGET_SUM, exclude_highly_expressed=True)
+sc.pp.sqrt(ground_truth_adata)
 print("Processing dropout data...")
 processed_tenx_adata = processing_before_imputation(tenx_synthetic_adata, TARGET_SUM)
 
@@ -87,11 +88,12 @@ def run_magic(counts_adata, t, knn_dist, n_jobs=-1, verbose=True):
                 knn_dist = knn_dist, 
                 n_jobs = n_jobs, 
                 verbose = verbose)
-    counts_adata.X = counts_adata.X**2
+    # counts_adata.X = counts_adata.X**2
     return counts_adata
 
 def calculate_error(true_adata, imputed_adata):
-    mse = (np.square(true_adata.X - imputed_adata.X)).mean()
+
+    mse = (np.square(true_adata.X - imputed_adata.X)).mean(axis=None)
     return mse
 
 def run_magic_evaluation_pipeline(true_adata, procesed_adata, t, knn_dist, n_jobs=-1):
@@ -105,6 +107,8 @@ def run_magic_evaluation_pipeline_synth_data(t_knn_dist_pair, true_adata=ground_
     Partial function on the same ground truth dataset
     '''
     t, knn_dist = t_knn_dist_pair
+    print("t:", t)
+    print("distance metric:", knn_dist)
     return run_magic_evaluation_pipeline(true_adata, procesed_adata, t=t, knn_dist=knn_dist, n_jobs=-1) 
 
 

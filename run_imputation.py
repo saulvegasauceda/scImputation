@@ -16,15 +16,17 @@ import os
 if __name__ == '__main__':
       
     np.random.seed(1738)
-    t_selections = [i for i in range(1,7)]
-    knn_dist_selection = ['euclidean', 'cosine']
+    t_selections = [i for i in range(1,10)]
+    knn_dist_selection = ['euclidean', 'cosine', 'correlation', 'cityblock', 'l1', 'l2', 
+                            'manhattan', 'braycurtis', 'canberra', 'chebyshev', 'dice', 'hamming', 
+                            'jaccard', 'kulsinski', 'mahalanobis', 'matching', 'minkowski', 'rogerstanimoto', 
+                            'russellrao', 'seuclidean', 'sokalmichener', 'sokalsneath', 'sqeuclidean', 'yule']
 
     t_knn_product = []
 
     for knn_dist in knn_dist_selection:
         for t in t_selections:
             t_knn_product.append((t, knn_dist))
-
 
     print("Processing running MAGIC...")
     with Pool(os.cpu_count() // 3) as p:
@@ -37,5 +39,5 @@ if __name__ == '__main__':
                             "MSE": error_per_pair
                         })
 
-    print(results)
+    results.to_csv("small_magic_grid_search.csv")
 
