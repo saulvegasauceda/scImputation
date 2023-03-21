@@ -3,112 +3,64 @@ import pandas as pd
 import scanpy as sc
 import numpy as np
 import scanpy.external as sce
-from numpy.random import seed
-from random import choices
-from scipy.stats import rv_discrete
-from scipy.stats import nbinom
-import scipy
 
-def create_synthetic_cells(rna_species_char, p, number_cells=100):
-        '''
-        Inputs
-        --------
-        p: the probability of a single success (parameter to scipy.stats.nbinom)
-        rna_species_char: List of size N representing the profile of N RNA species
-        number_cells: number of cells (rows) in synthetic dataset
-        
-        Sampling using a negative binomial distribution where n = # of median RNA
-        
-        Outputs
-        --------
-        Pandas dataframe of size (number_cells x N) where each row represents a cell
-        sampled from rna_species_char.
-        '''
-        cell_generator = [nbinom(n, p) for n in rna_species_char]
-        ground_truth_df = pd.DataFrame([dist.rvs(number_cells) for dist in cell_generator]).T
-        ground_truth_df = ground_truth_df.set_axis([f"Gene {g + 1}" for g in range(len(ground_truth_df.columns))], axis=1, inplace=False)
-        return ground_truth_df
-
-def artificially_sample_cells(true_cells_df, capture_rate):
+def rescale_after_magic(magic_matrix, original_matrix):
     '''
-    Simulating Bernoulli sampling with synthetic dataset 
-    where p = capture_rate (p := probability RNA is included in set)
+    Function from older version of MAGIC to rescale after imputation
+    Arguments:
+        data: dense array of imputed counts (adata.X after magic)
+        original_matrix:  sparse array, original normalized counts (adata.X before magic)
     '''
-    sim_capture = lambda x, p: sum(choices([0, 1], weights=[1-p, p])[0] for _ in range(x))
-    return true_cells_df.applymap(lambda x: sim_capture(x, p=capture_rate))
+    magic_matrix[magic_matrix < 0] = 0                                                          # flatten the imputed data to zero
+    original_matrix = np.squeeze(np.asarray(original_matrix.todense()))                         # get the sparse matrix as dense
 
-def processing_before_imputation(counts_adata, target_sum=None):
-    '''
-    Run processing steps before MAGIC
-    '''
+    M100 = original_matrix.max(axis=0)                                                          # get the max value for each gene
+    M99 = np.percentile(original_matrix, 99, axis=0)                                            # find the 99the percentile value for each gene
+    indices = np.where(M99 == 0)[0]                                                             # all the places the 99th percentile is zero
+    M99[indices] = M100[indices]                                                                # replace those with the max value
 
-    if ((scipy.sparse.issparse(counts_adata.X) and not np.all(np.mod(counts_adata.X.data, 1) == 0)) or
-        (not scipy.sparse.issparse(counts_adata.X) and not np.all(np.mod(counts_adata.X, 1) == 0))):
-        print('Warning: non-integer entries in adata.X. Likely not counts matrix.', flush=True)
+    M100_new = magic_matrix.max(axis=0)                                                         # now where the 100th percentile is
+    M99_new = np.percentile(magic_matrix, 99, axis=0)                                           # now where the 99th percentile is
+    indices = np.where(M99_new == 0)[0]                                                         # again, find where the new 99th percentile is zero
+    M99_new[indices] = M100_new[indices]                                                        # and replace it with the 100th percentile
+    max_ratio = np.divide(M99, M99_new)                                                         # the ratio of the old 99th percentile to the new 99th percentile
+    max_ratio[~np.isfinite(max_ratio)] = 1                                                      # if you had any all-zero columns, you would have gotten an error
+    magic_matrix = np.multiply(magic_matrix, np.tile(max_ratio, (original_matrix.shape[0], 1))) # do the rescaling
 
-    sc.pp.normalize_total(counts_adata,  target_sum=target_sum, exclude_highly_expressed=True)
-    sc.pp.sqrt(counts_adata)
-    return counts_adata
+    return magic_matrix
 
-def run_create_synthetic_dataset_pipeline(rna_species_char, number_cells=100, capture_rate=0.6, p=0.5):
-    ground_truth_df = create_synthetic_cells(rna_species_char, p, number_cells)
-    dropout_df = artificially_sample_cells(ground_truth_df, capture_rate)
-
-    ground_truth_adata = sc.AnnData(ground_truth_df)
-    dropout_adata = sc.AnnData(dropout_df)
-    return ground_truth_adata, dropout_adata
-
-np.random.seed(1738)
-
-Rna_species_characteristic_numbers = [1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 20, 40, 60, 300, 40]
-
-print("Processing generating synthetic data...")
-ground_truth_adata, tenx_synthetic_adata = run_create_synthetic_dataset_pipeline(
-                                                Rna_species_characteristic_numbers, 
-                                                number_cells=200, 
-                                                capture_rate=0.6,
-                                                p=0.5
-                                            )
-TARGET_SUM = 1_000
-sc.pp.normalize_total(ground_truth_adata,  target_sum=TARGET_SUM, exclude_highly_expressed=True)
-sc.pp.sqrt(ground_truth_adata)
-print("Processing dropout data...")
-processed_tenx_adata = processing_before_imputation(tenx_synthetic_adata, TARGET_SUM)
-
-
-def run_magic(counts_adata, t, knn_dist, n_jobs=-1, verbose=True):
+def run_magic(counts_adata, t, knn_dist, output_path, n_jobs=-1, verbose=True):
     """
     Run MAGIC modifying only t and knn_dist
-    returns imputed counts data
+    saves imputed and imputed-rescaled counts as h5ad
+
+    output_path: should end with "/"
     """
-    sce.pp.magic(adata = counts_adata, 
-                name_list='all_genes',
-                solver='exact',
-                t = t, 
-                knn_dist = knn_dist, 
-                n_jobs = n_jobs, 
-                verbose = verbose)
-    # counts_adata.X = counts_adata.X**2
-    return counts_adata
+    magic_file = output_path + f"{t}_{knn_dist}_imputed_synth.h5ad"
+    rescaled_file = output_path + f"{t}_{knn_dist}_imputed_rescaled_synth.h5ad"
 
-def calculate_error(true_adata, imputed_adata):
+    magic_adata = sce.pp.magic(
+                                adata = counts_adata, 
+                                name_list='all_genes',
+                                solver='exact',
+                                t = t, 
+                                knn_dist = knn_dist, 
+                                n_jobs = n_jobs, 
+                                verbose = verbose
+                                )
 
-    mse = (np.square(true_adata.X - imputed_adata.X)).mean(axis=None)
-    return mse
+    print('Rescaling matrix...')
+    rescaled_matrix = rescale_after_magic(magic_adata.X.copy(), counts_adata.X)
+    #np.square(rescaled_matrix)
+    rescaled_adata = anndata.AnnData(X=rescaled_matrix, obs=counts_adata.obs, var=counts_adata.var)
 
-def run_magic_evaluation_pipeline(true_adata, procesed_adata, t, knn_dist, n_jobs=-1):
-    imputed_adata = run_magic(procesed_adata, t, knn_dist, n_jobs)
-    error = calculate_error(true_adata, imputed_adata)
-    return error
+    print("Saving h5ad of imputed counts...")
+    magic_adata.write_h5ad(magic_file, compression='gzip')
+    rescaled_adata.write_h5ad(rescaled_file, compression='gzip')
 
-
-def run_magic_evaluation_pipeline_synth_data(t_knn_dist_pair, true_adata=ground_truth_adata, procesed_adata=processed_tenx_adata):
-    '''
-    Partial function on the same ground truth dataset
-    '''
-    t, knn_dist = t_knn_dist_pair
+def run_magic_pipeline(t_knn_dist_prod, n_jobs=-1):
+    t, knn_dist = t_knn_dist_prod
+    output_path = "/Users/saulvegasauceda/Desktop/Kellis_UROP/synth_runs/"
     print("t:", t)
-    print("distance metric:", knn_dist)
-    return run_magic_evaluation_pipeline(true_adata, procesed_adata, t=t, knn_dist=knn_dist, n_jobs=-1) 
-
-
+    print("knn_dist:", knn_dist)
+    run_magic(processed_tenx_adata, t, knn_dist, output_path, n_jobs)

@@ -16,11 +16,8 @@ import os
 if __name__ == '__main__':
       
     np.random.seed(1738)
-    t_selections = [i for i in range(1,10)]
-    knn_dist_selection = ['euclidean', 'cosine', 'correlation', 'cityblock', 'l1', 'l2', 
-                            'manhattan', 'braycurtis', 'canberra', 'chebyshev', 'dice', 'hamming', 
-                            'jaccard', 'kulsinski', 'mahalanobis', 'matching', 'minkowski', 'rogerstanimoto', 
-                            'russellrao', 'seuclidean', 'sokalmichener', 'sokalsneath', 'sqeuclidean', 'yule']
+    t_selections = [i for i in range(1, 6)]
+    knn_dist_selection = ['euclidean', 'cosine', 'correlation']
 
     t_knn_product = []
 
@@ -35,7 +32,7 @@ if __name__ == '__main__':
     t_columns, knn_dist_columns = zip(*t_knn_product)
     results = pd.DataFrame({
                             "t": t_columns,
-                            "knn": knn_dist_columns,
+                            "distance_metric": knn_dist_columns,
                             "MSE": error_per_pair
                         })
 
