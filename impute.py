@@ -29,13 +29,14 @@ def rescale_after_magic(magic_matrix, original_matrix):
 
     return magic_matrix
 
-def run_magic(counts_adata, t, knn_dist, output_path, n_jobs=-1, verbose=True):
+def run_magic(t_knn_dist_prod, counts_adata, output_path, ):
     """
     Run MAGIC modifying only t and knn_dist
     saves imputed and imputed-rescaled counts as h5ad
 
     output_path: should end with "/"
     """
+    t, knn_dist = t_knn_dist_prod
     magic_file = output_path + f"{t}_{knn_dist}_imputed_synth.h5ad"
     rescaled_file = output_path + f"{t}_{knn_dist}_imputed_rescaled_synth.h5ad"
 
@@ -45,8 +46,9 @@ def run_magic(counts_adata, t, knn_dist, output_path, n_jobs=-1, verbose=True):
                                 solver='exact',
                                 t = t, 
                                 knn_dist = knn_dist, 
-                                n_jobs = n_jobs, 
-                                verbose = verbose
+                                n_jobs = -1, 
+                                copy=True,
+                                verbose = True
                                 )
 
     print('Rescaling matrix...')
@@ -58,9 +60,9 @@ def run_magic(counts_adata, t, knn_dist, output_path, n_jobs=-1, verbose=True):
     magic_adata.write_h5ad(magic_file, compression='gzip')
     rescaled_adata.write_h5ad(rescaled_file, compression='gzip')
 
-def run_magic_pipeline(t_knn_dist_prod, n_jobs=-1):
-    t, knn_dist = t_knn_dist_prod
-    output_path = "/Users/saulvegasauceda/Desktop/Kellis_UROP/synth_runs/"
-    print("t:", t)
-    print("knn_dist:", knn_dist)
-    run_magic(processed_tenx_adata, t, knn_dist, output_path, n_jobs)
+    # # Partial function
+    # def run_magic_pipeline(t_knn_dist_prod, n_jobs=-1, output_path=output_path, counts_adata=processed_tenx_adata):
+    #     t, knn_dist = t_knn_dist_prod
+    #     print("t:", t, flush=True)
+    #     print("knn_dist:", knn_dist, flush=True)
+    #     run_magic(counts_adata, t, knn_dist, output_path, n_jobs)

@@ -10,7 +10,8 @@ from scipy.stats import rv_discrete
 from scipy.stats import nbinom
 from multiprocessing import Pool
 from generate_synth_data import run_create_synthetic_dataset_pipeline
-from impute import run_magic
+from impute import *
+from functools import partial
 import os
 
 
@@ -33,23 +34,24 @@ if __name__ == '__main__':
     # Setup for grid search
     t_selections = [i for i in range(1, 6)]
     knn_dist_selection = ['euclidean', 'cosine', 'correlation']
-    t_knn_product = []
+    t_knn_dist_product = []
     for knn_dist in knn_dist_selection:
         for t in t_selections:
-            t_knn_product.append((t, knn_dist))
+            t_knn_dist_product.append((t, knn_dist))
 
-    # Partial function
-    def run_magic_pipeline(t_knn_dist_prod, n_jobs=-1, output_path=output_path):
-        t, knn_dist = t_knn_dist_prod
-        print("t:", t)
-        print("knn_dist:", knn_dist)
-        run_magic(processed_tenx_adata, t, knn_dist, output_path, n_jobs)
+    # # Partial function
+    # def run_magic_pipeline(t_knn_dist_prod, n_jobs=-1, output_path=output_path, counts_adata=processed_tenx_adata):
+    #     t, knn_dist = t_knn_dist_prod
+    #     print("t:", t, flush=True)
+    #     print("knn_dist:", knn_dist, flush=True)
+    #     run_magic(counts_adata, t, knn_dist, output_path, n_jobs)
+    run_magic_on_tenx = partial(run_magic, counts_adata=processed_tenx_adata, output_path=output_path)
 
     print("Processing running MAGIC...")
     with Pool(os.cpu_count() // 3) as p:
-        p.map(run_magic_pipeline, t_knn_product)
+        p.map(run_magic_on_tenx, t_knn_dist_product)
 
-    # t_columns, knn_dist_columns = zip(*t_knn_product)
+    # t_columns, knn_dist_columns = zip(*t_knn_dist_product)
     # results = pd.DataFrame({
     #                         "t": t_columns,
     #                         "distance_metric": knn_dist_columns,

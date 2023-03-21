@@ -68,23 +68,10 @@ def run_create_synthetic_dataset_pipeline(output_path, rna_species_char, number_
     sc.pp.sqrt(ground_truth_adata)
     
     print("Processing dropout data...")
-    processed_tenx_adata = processing_before_imputation(tenx_synthetic_adata, TARGET_SUM)
+    processed_tenx_adata = processing_before_imputation(dropout_adata, target_sum)
 
     print("Saving h5ad of original counts...")
     ground_truth_adata.write_h5ad(ground_truth_file, compression='gzip')
-    processed_tenx_adata.write_h5ad(dropout_file, compression='gzip')
+    dropout_adata.write_h5ad(dropout_file, compression='gzip')
 
-
-output_path = "/Users/saulvegasauceda/Desktop/Kellis_UROP/synth_runs/"
-TARGET_SUM = 1_000
-Rna_species_characteristic_numbers = [1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 20, 40, 60, 300, 40]
-
-print("Processing generating synthetic data...")
-run_create_synthetic_dataset_pipeline(
-                                        output_path,
-                                        Rna_species_characteristic_numbers, 
-                                        number_cells=200, 
-                                        capture_rate=0.6,
-                                        target_sum=TARGET_SUM,
-                                        p=0.5
-                                    )
+    return ground_truth_adata, dropout_adata
