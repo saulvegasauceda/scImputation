@@ -2,7 +2,6 @@ import magic
 import scanpy as sc
 import numpy as np
 import scanpy.external as sce
-import scipy
 
 def rescale_after_magic(magic_matrix, original_matrix):
     '''
