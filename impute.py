@@ -1,8 +1,8 @@
 import magic
-import pandas as pd
 import scanpy as sc
 import numpy as np
 import scanpy.external as sce
+import scipy
 
 def rescale_after_magic(magic_matrix, original_matrix):
     '''
@@ -44,7 +44,7 @@ def run_magic(t_knn_dist_prod, counts_adata, output_path, ):
     print("t:", t, flush=True)
     print("knn_dist:", knn_dist, flush=True)
     print(30*'-', flush=True)
-    
+
     magic_adata = sce.pp.magic(
                                 adata = counts_adata, 
                                 name_list='all_genes',

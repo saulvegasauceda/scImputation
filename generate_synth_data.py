@@ -1,14 +1,10 @@
 import pandas as pd
 import scanpy as sc
 import numpy as np
-import scanpy.external as sce
-from numpy.random import seed
 from random import choices
 from scipy.stats import rv_discrete
 from scipy.stats import nbinom
 import scipy
-
-np.random.seed(1738)
 
 ## Helper functions to help generate synthetic data ###
 def create_synthetic_cells(rna_species_char, p, number_cells=100):
