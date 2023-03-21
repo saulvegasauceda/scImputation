@@ -4,6 +4,7 @@ import numpy as np
 from random import choices
 from scipy.stats import rv_discrete
 from scipy.stats import nbinom
+from scipy.stats import bernoulli
 import scipy
 
 ## Helper functions to help generate synthetic data ###
@@ -32,8 +33,7 @@ def artificially_sample_cells(true_cells_df, capture_rate):
     Simulating Bernoulli sampling with synthetic dataset 
     where p = capture_rate (p := probability RNA is included in set)
     '''
-    sim_capture = lambda x, p: sum(choices([0, 1], weights=[1-p, p])[0] for _ in range(x))
-    return true_cells_df.applymap(lambda x: sim_capture(x, p=capture_rate))
+    return true_cells_df.applymap(lambda x: bernoulli.rvs(capture_rate, x))
 
 def processing_before_imputation(counts_adata, target_sum=None):
     '''
@@ -50,7 +50,8 @@ def processing_before_imputation(counts_adata, target_sum=None):
 
 def run_create_synthetic_dataset_pipeline(output_path, rna_species_char, number_cells=100, capture_rate=0.6, target_sum=1000, p=0.5):
     ground_truth_file = output_path + "ground_truth_synth.h5ad"
-    dropout_file = output_path + f"dropout_capture_rate={round(capture_rate, 2)}_synth.h5ad"
+    rounded_capture_rate = round(capture_rate, 2) # for visualization purposes
+    dropout_file = output_path + f"dropout_capture_rate={rounded_capture_rate}_synth.h5ad"
 
     print("Generating synthetic data...", flush=True)
     ground_truth_df = create_synthetic_cells(rna_species_char, p, number_cells)

@@ -13,10 +13,10 @@ if __name__ == '__main__':
 
     # Setup for generating synth cells
     output_path = "/Users/saulvegasauceda/Desktop/Kellis_UROP/synth_runs/"
-    TARGET_SUM = 1_000
+    TARGET_SUM = 5_000
     CAPTURE_RATE = 0.6
-    NUMBER_OF_CELLS = 200
-    Rna_species_characteristic_numbers = [1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 20, 40, 60, 300, 40]
+    NUMBER_OF_CELLS = 10_000
+    Rna_species_characteristic_numbers = 10*[1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 20, 40, 60, 300, 40]
     print("Processing generating synthetic data...")
     ground_truth_adata, processed_tenx_adata = run_create_synthetic_dataset_pipeline(
                                                                                         output_path,
@@ -27,8 +27,8 @@ if __name__ == '__main__':
                                                                                         p=0.5
                                                                                     )
     # Setup for grid search
-    t_selections = [i for i in range(1, 6)]
-    knn_dist_selection = ['euclidean', 'cosine', 'correlation']
+    t_selections = [i for i in range(1, 7)]
+    knn_dist_selection = ['euclidean', 'cosine']
     t_knn_dist_product = []
     for knn_dist in knn_dist_selection:
         for t in t_selections:
@@ -41,4 +41,6 @@ if __name__ == '__main__':
     CPUS_TO_USE = os.cpu_count() // 3
     with Pool(CPUS_TO_USE) as p:
         p.map(run_magic_on_tenx, t_knn_dist_product)
+
+    print("Done!")
 

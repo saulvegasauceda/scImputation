@@ -36,8 +36,8 @@ def run_magic(t_knn_dist_prod, counts_adata, output_path, ):
     output_path: should end with "/"
     """
     t, knn_dist = t_knn_dist_prod
-    magic_file = output_path + f"t={t}_knn_dist={knn_dist}_imputed_synth.h5ad"
-    rescaled_file = output_path + f"t={t}_knn_dist={knn_dist}_imputed_rescaled_synth.h5ad"
+    magic_file = output_path + f"t={t}_knn_dist={knn_dist}_rescale={False}_imputed_synth.h5ad"
+    rescaled_file = output_path + f"t={t}_knn_dist={knn_dist}_rescale={True}_imputed_synth.h5ad"
     
     print(30*'-', flush=True)
     print("t:", t, flush=True)
