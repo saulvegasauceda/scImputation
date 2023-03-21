@@ -56,9 +56,9 @@ def run_create_synthetic_dataset_pipeline(output_path, rna_species_char, number_
     ground_truth_file = output_path + "ground_truth_synth.h5ad"
     dropout_file = output_path + f"dropout_capture_rate={round(capture_rate, 2)}_synth.h5ad"
 
-    print("Generating synthetic data...")
+    print("Generating synthetic data...", flush=True)
     ground_truth_df = create_synthetic_cells(rna_species_char, p, number_cells)
-    print("Artificially inducing dropout...")
+    print("Artificially inducing dropout...", flush=True)
     dropout_df = artificially_sample_cells(ground_truth_df, capture_rate)
 
     ground_truth_adata = sc.AnnData(ground_truth_df)
@@ -67,10 +67,10 @@ def run_create_synthetic_dataset_pipeline(output_path, rna_species_char, number_
     sc.pp.normalize_total(ground_truth_adata,  target_sum=target_sum, exclude_highly_expressed=True)
     sc.pp.sqrt(ground_truth_adata)
     
-    print("Processing dropout data...")
+    print("Processing dropout data...", flush=True)
     processed_tenx_adata = processing_before_imputation(dropout_adata, target_sum)
 
-    print("Saving h5ad of original counts...")
+    print("Saving h5ad of original counts...", flush=True)
     ground_truth_adata.write_h5ad(ground_truth_file, compression='gzip')
     dropout_adata.write_h5ad(dropout_file, compression='gzip')
 

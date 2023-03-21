@@ -12,7 +12,7 @@ def rescale_after_magic(magic_matrix, original_matrix):
         original_matrix:  sparse array, original normalized counts (adata.X before magic)
     '''
     magic_matrix[magic_matrix < 0] = 0                                                          # flatten the imputed data to zero
-    original_matrix = np.squeeze(np.asarray(original_matrix.todense()))                         # get the sparse matrix as dense
+    original_matrix = np.squeeze(original_matrix)                         # get the sparse matrix as dense
 
     M100 = original_matrix.max(axis=0)                                                          # get the max value for each gene
     M99 = np.percentile(original_matrix, 99, axis=0)                                            # find the 99the percentile value for each gene
@@ -37,9 +37,14 @@ def run_magic(t_knn_dist_prod, counts_adata, output_path, ):
     output_path: should end with "/"
     """
     t, knn_dist = t_knn_dist_prod
-    magic_file = output_path + f"{t}_{knn_dist}_imputed_synth.h5ad"
-    rescaled_file = output_path + f"{t}_{knn_dist}_imputed_rescaled_synth.h5ad"
-
+    magic_file = output_path + f"t={t}_knn_dist={knn_dist}_imputed_synth.h5ad"
+    rescaled_file = output_path + f"t={t}_knn_dist={knn_dist}_imputed_rescaled_synth.h5ad"
+    
+    print(30*'-', flush=True)
+    print("t:", t, flush=True)
+    print("knn_dist:", knn_dist, flush=True)
+    print(30*'-', flush=True)
+    
     magic_adata = sce.pp.magic(
                                 adata = counts_adata, 
                                 name_list='all_genes',
@@ -51,18 +56,12 @@ def run_magic(t_knn_dist_prod, counts_adata, output_path, ):
                                 verbose = True
                                 )
 
-    print('Rescaling matrix...')
+    print('Rescaling matrix...', flush=True)
     rescaled_matrix = rescale_after_magic(magic_adata.X.copy(), counts_adata.X)
     #np.square(rescaled_matrix)
-    rescaled_adata = anndata.AnnData(X=rescaled_matrix, obs=counts_adata.obs, var=counts_adata.var)
+    rescaled_adata = sc.AnnData(X=rescaled_matrix, obs=counts_adata.obs, var=counts_adata.var)
 
-    print("Saving h5ad of imputed counts...")
+    print("Saving h5ad of imputed counts...", flush=True)
     magic_adata.write_h5ad(magic_file, compression='gzip')
     rescaled_adata.write_h5ad(rescaled_file, compression='gzip')
 
-    # # Partial function
-    # def run_magic_pipeline(t_knn_dist_prod, n_jobs=-1, output_path=output_path, counts_adata=processed_tenx_adata):
-    #     t, knn_dist = t_knn_dist_prod
-    #     print("t:", t, flush=True)
-    #     print("knn_dist:", knn_dist, flush=True)
-    #     run_magic(counts_adata, t, knn_dist, output_path, n_jobs)

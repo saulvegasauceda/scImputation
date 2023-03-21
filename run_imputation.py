@@ -13,7 +13,9 @@ from generate_synth_data import run_create_synthetic_dataset_pipeline
 from impute import *
 from functools import partial
 import os
+import warnings
 
+warnings.filterwarnings("ignore")
 
 if __name__ == '__main__':
     np.random.seed(1738)
@@ -39,24 +41,10 @@ if __name__ == '__main__':
         for t in t_selections:
             t_knn_dist_product.append((t, knn_dist))
 
-    # # Partial function
-    # def run_magic_pipeline(t_knn_dist_prod, n_jobs=-1, output_path=output_path, counts_adata=processed_tenx_adata):
-    #     t, knn_dist = t_knn_dist_prod
-    #     print("t:", t, flush=True)
-    #     print("knn_dist:", knn_dist, flush=True)
-    #     run_magic(counts_adata, t, knn_dist, output_path, n_jobs)
+    # using partial function to pass in default params
     run_magic_on_tenx = partial(run_magic, counts_adata=processed_tenx_adata, output_path=output_path)
 
     print("Processing running MAGIC...")
     with Pool(os.cpu_count() // 3) as p:
         p.map(run_magic_on_tenx, t_knn_dist_product)
-
-    # t_columns, knn_dist_columns = zip(*t_knn_dist_product)
-    # results = pd.DataFrame({
-    #                         "t": t_columns,
-    #                         "distance_metric": knn_dist_columns,
-    #                         "MSE": error_per_pair
-    #                     })
-
-    # results.to_csv("small_magic_grid_search.csv")
 
