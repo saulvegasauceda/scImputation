@@ -4,7 +4,7 @@ import scanpy as sc
 def get_synthetic_data_paths(
         output_path="./", 
         ground_truth_file="ground_truth_synth.h5ad", 
-        dropout_file="dropout_capture_rate=0.6_synth.h5ad", 
+        dropout_file="dropout_capture_rate=0.15_synth.h5ad", 
         parameters=[]):
     """
     Inputs:

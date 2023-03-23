@@ -26,7 +26,8 @@ if __name__ == '__main__':
     )
 
     # using partial function to pass in default params
-    run_evaluation_on_ground_truth = partial(load_synthetic_data.run_evaluation_pipeline, 
+    run_evaluation_on_ground_truth = partial(
+        load_synthetic_data.run_evaluation_pipeline, 
         ground_truth_matrix = ground_truth_adata.X, 
         metrics = metrics
         )
