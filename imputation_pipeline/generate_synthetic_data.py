@@ -33,7 +33,8 @@ def artificially_sample_cells(true_cells_df, capture_rate):
     Simulating Bernoulli sampling with synthetic dataset 
     where p = capture_rate (p := probability RNA is included in set)
     '''
-    return true_cells_df.applymap(lambda x: bernoulli.rvs(capture_rate, x))
+    dropout_df = true_cells_df.copy()
+    return dropout_df.applymap(lambda n: np.sum(bernoulli.rvs(capture_rate, size=n)))
 
 def processing_before_imputation(counts_adata, target_sum=None):
     '''
@@ -58,6 +59,9 @@ def run_create_synthetic_dataset_pipeline(output_path, rna_species_char, number_
     print("Artificially inducing dropout...", flush=True)
     dropout_df = artificially_sample_cells(ground_truth_df, capture_rate)
 
+    dropout_df.to_csv("dropout_raw.csv")
+    ground_truth_df.to_csv("ground_truth_raw.csv")
+
     ground_truth_adata = sc.AnnData(ground_truth_df)
     dropout_adata = sc.AnnData(dropout_df)
 
@@ -69,6 +73,6 @@ def run_create_synthetic_dataset_pipeline(output_path, rna_species_char, number_
 
     print("Saving h5ad of original counts...", flush=True)
     ground_truth_adata.write_h5ad(ground_truth_file, compression='gzip')
-    dropout_adata.write_h5ad(dropout_file, compression='gzip')
+    processed_tenx_adata.write_h5ad(dropout_file, compression='gzip')
 
     return ground_truth_adata, dropout_adata

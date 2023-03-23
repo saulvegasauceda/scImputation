@@ -13,14 +13,18 @@ if __name__ == '__main__':
 
     # Setup for generating synth cells
     output_path = "/Users/saulvegasauceda/Desktop/Kellis_UROP/synth_runs/"
-    TARGET_SUM = 5_000
+    TARGET_SUM = 1_000_000
     CAPTURE_RATE = 0.6
     NUMBER_OF_CELLS = 10_000
-    Rna_species_characteristic_numbers = 10*[1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 20, 40, 60, 300, 40]
+    Rna_species_characteristic_numbers = [1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 20, 40, 60, 300, 40]
+    genes_characteristics = []
+    for _ in range(10):
+        genes_characteristics.extend(Rna_species_characteristic_numbers[:])
+
     print("Processing generating synthetic data...")
     ground_truth_adata, processed_tenx_adata = run_create_synthetic_dataset_pipeline(
                                                                                         output_path,
-                                                                                        Rna_species_characteristic_numbers, 
+                                                                                        genes_characteristics, 
                                                                                         number_cells=NUMBER_OF_CELLS, 
                                                                                         capture_rate=CAPTURE_RATE,
                                                                                         target_sum=TARGET_SUM,

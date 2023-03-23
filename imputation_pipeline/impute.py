@@ -28,7 +28,7 @@ def rescale_after_magic(magic_matrix, original_matrix):
 
     return magic_matrix
 
-def run_magic(t_knn_dist_prod, counts_adata, output_path, ):
+def run_magic(t_knn_dist_prod, counts_adata, output_path):
     """
     Run MAGIC modifying only t and knn_dist
     saves imputed and imputed-rescaled counts as h5ad
