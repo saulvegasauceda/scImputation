@@ -95,3 +95,24 @@ def calculate_rrmse(desired, actual):
 
     rrmse = sqrt_mse / sqrt_sum_squared_desire
     return rrmse
+
+# Pipeline
+
+def run_evaluation_pipeline(ground_truth_matrix, data_to_compare_path, metrics):
+    """
+    Calculating error for every metric specified in metrics
+
+    Inputs: 
+        ground_truth_matrix: 2D numpy array corresponding to desire values
+        data_to_compare_path: file path to counts that will be compared to ground_truth_matrix
+        metrics: list of functinos that calculate evaluation metrics
+    Returns:
+        error_values: list of scalar values for each metric in metrics, respectively
+    """
+    other_adata = sc.read_h5ad(data_to_compare_path)
+    other_data_matrix = other_adata.X
+
+    error_values = [calculate_metric(ground_truth_matrix, other_data_matrix) 
+                        for calculate_metric in metrics]
+
+    return error_values
