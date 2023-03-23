@@ -17,11 +17,11 @@ if __name__ == '__main__':
 
     ground_truth_adata = sc.read_h5ad(ground_truth_file)
     
-    metrics = [
+    metrics = (
         evaluation_metrics.calculate_mse,
         evaluation_metrics.calculate_rmsre,
         evaluation_metrics.calculate_rrmse
-        ]
+    )
 
     # using partial function to pass in default params
     run_evaluation_on_ground_truth = partial(evaluate.run_evaluation_pipeline, 
@@ -31,4 +31,18 @@ if __name__ == '__main__':
 
     CPUS_TO_USE = os.cpu_count() // 3
     with Pool(CPUS_TO_USE) as p:
-        p.map(evaluate.run_evaluation_pipeline(ground_truth_matrix, data_to_compare_path, metrics), all_files)
+        error_per_param = p.map(load_synthetic_data.run_evaluation_pipeline, all_files)
+    
+    t_columns, knn_dist_columns, rescaled_columns = zip(*parameters)
+    mse_columns, rmsre_columns, rrmse_columns = zip(*error_per_param)
+
+    results = pd.DataFrame({
+                            "t": t_columns,
+                            "knn": knn_dist_columns,
+                            "rescaled": rescaled_columns,
+                            "MSE": mse_columns,
+                            "RMSRE": rmsre_columns,
+                            "RRMSE": rrmse_columns
+                        })
+
+    results.to_csv("10k_cells_imputation_evaluation.csv")
