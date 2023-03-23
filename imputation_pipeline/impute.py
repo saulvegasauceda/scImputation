@@ -28,13 +28,15 @@ def rescale_after_magic(magic_matrix, original_matrix):
 
     return magic_matrix
 
-def run_magic(t_knn_dist_prod, counts_adata, output_path):
+def run_magic(t_knn_dist_prod, counts_adata, target_sum, output_path):
     """
     Run MAGIC modifying only t and knn_dist
     saves imputed and imputed-rescaled counts as h5ad
 
     output_path: should end with "/"
     """
+    assert output_path[-1] == "/", "output_path must end with forwardslash '/'"
+
     t, knn_dist = t_knn_dist_prod
     magic_file = output_path + f"t={t}_knn_dist={knn_dist}_rescale={False}_imputed_synth.h5ad"
     rescaled_file = output_path + f"t={t}_knn_dist={knn_dist}_rescale={True}_imputed_synth.h5ad"
@@ -44,21 +46,28 @@ def run_magic(t_knn_dist_prod, counts_adata, output_path):
     print("knn_dist:", knn_dist, flush=True)
     print(30*'-', flush=True)
 
+    original_counts = counts_adata.X.copy()
     magic_adata = sce.pp.magic(
                                 adata = counts_adata, 
-                                name_list='all_genes',
-                                solver='exact',
+                                name_list = 'all_genes',
+                                solver = 'exact',
                                 t = t, 
                                 knn_dist = knn_dist, 
                                 n_jobs = -1, 
-                                copy=True,
+                                copy = True,
                                 verbose = True
                                 )
 
     print('Rescaling matrix...', flush=True)
-    rescaled_matrix = rescale_after_magic(magic_adata.X.copy(), counts_adata.X)
-    #np.square(rescaled_matrix)
+    rescaled_matrix = rescale_after_magic(magic_adata.X.copy(), original_counts)
+
+    np.square(rescaled_matrix)
+    magic_adata.X = np.square(magic_adata.X)
+    
     rescaled_adata = sc.AnnData(X=rescaled_matrix, obs=counts_adata.obs, var=counts_adata.var)
+
+    sc.pp.normalize_total(rescaled_adata,  target_sum=target_sum, exclude_highly_expressed=True)
+    sc.pp.normalize_total(magic_adata,  target_sum=target_sum, exclude_highly_expressed=True)
 
     print("Saving h5ad of imputed counts...", flush=True)
     magic_adata.write_h5ad(magic_file, compression='gzip')

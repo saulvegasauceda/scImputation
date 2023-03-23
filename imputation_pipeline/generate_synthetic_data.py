@@ -23,9 +23,12 @@ def create_synthetic_cells(rna_species_char, p, number_cells=100):
         Pandas dataframe of size (number_cells x N) where each row represents a cell
         sampled from rna_species_char.
         '''
-        cell_generator = [nbinom(n, p) for n in rna_species_char]
-        ground_truth_df = pd.DataFrame([dist.rvs(number_cells) for dist in cell_generator]).T
-        ground_truth_df = ground_truth_df.set_axis([f"Gene {g + 1}" for g in range(len(ground_truth_df.columns))], axis=1, inplace=False)
+        cell_generator = [nbinom(n, p) 
+                            for n in rna_species_char]
+        ground_truth_df = pd.DataFrame([dist.rvs(number_cells) 
+                            for dist in cell_generator]).T
+        ground_truth_df = ground_truth_df.set_axis([f"Gene {g + 1}" 
+                            for g in range(len(ground_truth_df.columns))], axis=1, inplace=False)
         return ground_truth_df
 
 def artificially_sample_cells(true_cells_df, capture_rate):
@@ -35,19 +38,6 @@ def artificially_sample_cells(true_cells_df, capture_rate):
     '''
     dropout_df = true_cells_df.copy()
     return dropout_df.applymap(lambda n: np.sum(bernoulli.rvs(capture_rate, size=n)))
-
-def processing_before_imputation(counts_adata, target_sum=None):
-    '''
-    Run processing steps before MAGIC
-    '''
-
-    if ((scipy.sparse.issparse(counts_adata.X) and not np.all(np.mod(counts_adata.X.data, 1) == 0)) or
-        (not scipy.sparse.issparse(counts_adata.X) and not np.all(np.mod(counts_adata.X, 1) == 0))):
-        print('Warning: non-integer entries in adata.X. Likely not counts matrix.', flush=True)
-
-    sc.pp.normalize_total(counts_adata,  target_sum=target_sum, exclude_highly_expressed=True)
-    sc.pp.sqrt(counts_adata)
-    return counts_adata
 
 def run_create_synthetic_dataset_pipeline(output_path, rna_species_char, number_cells=100, capture_rate=0.6, target_sum=1000, p=0.5):
     ground_truth_file = output_path + "ground_truth_synth.h5ad"
@@ -59,20 +49,16 @@ def run_create_synthetic_dataset_pipeline(output_path, rna_species_char, number_
     print("Artificially inducing dropout...", flush=True)
     dropout_df = artificially_sample_cells(ground_truth_df, capture_rate)
 
-    dropout_df.to_csv("dropout_raw.csv")
-    ground_truth_df.to_csv("ground_truth_raw.csv")
-
     ground_truth_adata = sc.AnnData(ground_truth_df)
     dropout_adata = sc.AnnData(dropout_df)
 
+    print("Saving h5ad of original counts...", flush=True)
     sc.pp.normalize_total(ground_truth_adata,  target_sum=target_sum, exclude_highly_expressed=True)
-    sc.pp.sqrt(ground_truth_adata)
+    sc.pp.normalize_total(dropout_adata,  target_sum=target_sum, exclude_highly_expressed=True)
+    ground_truth_adata.write_h5ad(ground_truth_file, compression='gzip')
+    dropout_adata.write_h5ad(dropout_file, compression='gzip')
     
     print("Processing dropout data...", flush=True)
-    processed_tenx_adata = processing_before_imputation(dropout_adata, target_sum)
-
-    print("Saving h5ad of original counts...", flush=True)
-    ground_truth_adata.write_h5ad(ground_truth_file, compression='gzip')
-    processed_tenx_adata.write_h5ad(dropout_file, compression='gzip')
+    sc.pp.sqrt(dropout_adata)
 
     return ground_truth_adata, dropout_adata
