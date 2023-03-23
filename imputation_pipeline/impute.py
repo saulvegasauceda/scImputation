@@ -48,15 +48,15 @@ def run_magic(t_knn_dist_prod, counts_adata, target_sum, output_path):
 
     original_counts = counts_adata.X.copy()
     magic_adata = sce.pp.magic(
-                                adata = counts_adata, 
-                                name_list = 'all_genes',
-                                solver = 'exact',
-                                t = t, 
-                                knn_dist = knn_dist, 
-                                n_jobs = -1, 
-                                copy = True,
-                                verbose = True
-                                )
+        adata = counts_adata, 
+        name_list = 'all_genes',
+        solver = 'exact',
+        t = t, 
+        knn_dist = knn_dist, 
+        n_jobs = -1, 
+        copy = True,
+        verbose = True
+    )
 
     print('Rescaling matrix...', flush=True)
     rescaled_matrix = rescale_after_magic(magic_adata.X.copy(), original_counts)
