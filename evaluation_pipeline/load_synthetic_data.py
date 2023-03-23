@@ -43,7 +43,6 @@ def generate_params():
     return parameters
 
 # Pipeline
-
 def run_evaluation_pipeline(ground_truth_matrix, data_to_compare_path, metrics):
     """
     Calculating error for every metric specified in metrics

@@ -1,5 +1,6 @@
 from numpy.random import seed
-import evaluate
+import evaluation_metrics
+import load_synthetic_data
 from multiprocessing import Pool
 from functools import partial
 import os
@@ -10,16 +11,16 @@ warnings.filterwarnings("ignore")
 if __name__ == '__main__':
     output_path = "/Users/saulvegasauceda/Desktop/Kellis_UROP/synth_runs/"
 
-    parameters = evaluate.generate_params()
-    all_files = evaluate.get_synthetic_data_paths(output_path = output_path, parameters = parameters)
+    parameters = load_synthetic_data.generate_params()
+    all_files = load_synthetic_data.get_synthetic_data_paths(output_path = output_path, parameters = parameters)
     ground_truth_file, dropout_file, all_synthetic_files = all_files[0], all_files[1], all_files[2:]
 
     ground_truth_adata = sc.read_h5ad(ground_truth_file)
     
     metrics = [
-        evaluate.calculate_mse,
-        evaluate.calculate_rmsre,
-        evaluate.calculate_rrmse
+        evaluation_metrics.calculate_mse,
+        evaluation_metrics.calculate_rmsre,
+        evaluation_metrics.calculate_rrmse
         ]
 
     # using partial function to pass in default params
