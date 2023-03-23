@@ -1,6 +1,6 @@
 from numpy.random import seed
 from multiprocessing import Pool
-from generate_synth_data import run_create_synthetic_dataset_pipeline
+from generate_synthetic_data import run_create_synthetic_dataset_pipeline
 from impute import run_magic
 from functools import partial
 import os
