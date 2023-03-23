@@ -86,8 +86,12 @@ def calculate_rrmse(desired, actual):
     Returns:
         rrmse: scalar value of relative root mean square error
     """
-    residual = desired - actual
-    relative_residual = np.divide(residual, desired)
-    squared_relative_residual = np.square(relative_residual)
-    rmsre = squared_relative_residual.mean(axis=None)
-    return rmsre
+    mse = calculate_mse(desired, actual)
+    sqrt_mse = np.sqrt(mse)
+
+    squared_desire = np.squared(desired)
+    sum_squared_desire = np.sum(squared_desire)
+    sqrt_sum_squared_desire = np.sqrt(sum_squared_desire)
+
+    rrmse = sqrt_mse / sqrt_sum_squared_desire
+    return rrmse
