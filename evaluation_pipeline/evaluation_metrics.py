@@ -45,7 +45,7 @@ def calculate_rrmse(desired, actual):
     mse = calculate_mse(desired, actual)
     sqrt_mse = np.sqrt(mse)
 
-    squared_desire = np.squared(desired)
+    squared_desire = np.square(desired)
     sum_squared_desire = np.sum(squared_desire)
     sqrt_sum_squared_desire = np.sqrt(sum_squared_desire)
 

@@ -43,21 +43,21 @@ def generate_params():
     return parameters
 
 # Pipeline
-def run_evaluation_pipeline(ground_truth_matrix, data_to_compare_path, metrics):
+def run_evaluation_pipeline(data_to_compare_path, ground_truth_matrix, metrics):
     """
     Calculating error for every metric specified in metrics
 
     Inputs: 
-        ground_truth_matrix: 2D numpy array corresponding to desire values
-        metrics: tuple of functinos that calculate evaluation metrics
         data_to_compare_path: file path to counts that will be compared to ground_truth_matrix
+        ground_truth_matrix: 2D numpy array corresponding to desire values
+        metrics: tuple of functions that calculate evaluation metrics
     Returns:
-        error_values: tuple of scalar values for each metric in metrics
+        error_values: list of scalar values for each metric in metrics
     """
     other_adata = sc.read_h5ad(data_to_compare_path)
     other_data_matrix = other_adata.X
 
-    error_values = (calculate_metric(ground_truth_matrix, other_data_matrix) 
-                        for calculate_metric in metrics)
+    error_values = [calculate_metric(ground_truth_matrix, other_data_matrix) 
+                        for calculate_metric in metrics]
 
     return error_values
