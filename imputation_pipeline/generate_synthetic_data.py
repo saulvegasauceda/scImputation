@@ -39,7 +39,13 @@ def artificially_sample_cells(true_cells_df, capture_rate):
     dropout_df = true_cells_df.copy()
     return dropout_df.applymap(lambda n: np.sum(bernoulli.rvs(capture_rate, size=n)))
 
-def run_create_synthetic_dataset_pipeline(output_path, rna_species_char, number_cells=100, capture_rate=0.6, target_sum=1000, p=0.5):
+def run_create_synthetic_dataset_pipeline(
+        output_path, 
+        rna_species_char, 
+        number_cells=100, 
+        capture_rate=0.6, 
+        target_sum=1000, 
+        p=0.5):
     ground_truth_file = output_path + "ground_truth_synth.h5ad"
     rounded_capture_rate = round(capture_rate, 2) # for visualization purposes
     dropout_file = output_path + f"dropout_capture_rate={rounded_capture_rate}_synth.h5ad"

@@ -44,13 +44,15 @@ if __name__ == '__main__':
 
     mse_columns, rmsre_columns, rrmse_columns = zip(*error_per_param)
 
-    results = pd.DataFrame({
-                            "t": t_columns,
-                            "knn": knn_dist_columns,
-                            "rescaled": rescaled_columns,
-                            "MSE": mse_columns,
-                            "RMSRE": rmsre_columns,
-                            "RRMSE": rrmse_columns
-                        })
+    results = pd.DataFrame(
+        {
+            "t": t_columns,
+            "knn": knn_dist_columns,
+            "rescaled": rescaled_columns,
+            "MSE": mse_columns,
+            "RMSRE": rmsre_columns,
+            "RRMSE": rrmse_columns
+        }
+    )
 
     results.to_csv("10k_cells_imputation_evaluation.csv")

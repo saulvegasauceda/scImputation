@@ -63,7 +63,7 @@ def run_magic(t_knn_dist_prod, counts_adata, target_sum, output_path):
 
     np.square(rescaled_matrix)
     magic_adata.X = np.square(magic_adata.X)
-    
+
     rescaled_adata = sc.AnnData(X=rescaled_matrix, obs=counts_adata.obs, var=counts_adata.var)
 
     sc.pp.normalize_total(rescaled_adata,  target_sum=target_sum, exclude_highly_expressed=True)
@@ -72,4 +72,3 @@ def run_magic(t_knn_dist_prod, counts_adata, target_sum, output_path):
     print("Saving h5ad of imputed counts...", flush=True)
     magic_adata.write_h5ad(magic_file, compression='gzip')
     rescaled_adata.write_h5ad(rescaled_file, compression='gzip')
-

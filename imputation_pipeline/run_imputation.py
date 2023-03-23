@@ -23,13 +23,13 @@ if __name__ == '__main__':
 
     print("Processing generating synthetic data...")
     ground_truth_adata, processed_tenx_adata = run_create_synthetic_dataset_pipeline(
-                                                                                        output_path,
-                                                                                        genes_characteristics, 
-                                                                                        number_cells=NUMBER_OF_CELLS, 
-                                                                                        capture_rate=CAPTURE_RATE,
-                                                                                        target_sum=TARGET_SUM,
-                                                                                        p=0.5
-                                                                                    )
+        output_path,
+        genes_characteristics, 
+        number_cells=NUMBER_OF_CELLS, 
+        capture_rate=CAPTURE_RATE,
+        target_sum=TARGET_SUM,
+        p=0.5
+        )
     # Setup for grid search
     t_selections = [i for i in range(1, 7)]
     knn_dist_selection = ['euclidean', 'cosine']
