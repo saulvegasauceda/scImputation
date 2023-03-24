@@ -52,6 +52,7 @@ def run_create_synthetic_dataset_pipeline(
 
     print("Generating synthetic data...", flush=True)
     ground_truth_df = create_synthetic_cells(rna_species_char, p, number_cells)
+    
     print("Artificially inducing dropout...", flush=True)
     dropout_df = artificially_sample_cells(ground_truth_df, capture_rate)
 
