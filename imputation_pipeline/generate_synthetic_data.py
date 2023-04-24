@@ -25,6 +25,11 @@ def create_synthetic_cells(rna_species_char, p, number_cells=100):
         '''
         cell_generator = [nbinom(n, p) 
                             for n in rna_species_char]
+        # stats.nbinom.rvs(n, p, size)
+        # n should be the characteristic numbers
+        # p should be the capture rate, 
+        # and size should be the number of cells
+
         ground_truth_df = pd.DataFrame([dist.rvs(number_cells) 
                             for dist in cell_generator]).T
         ground_truth_df = ground_truth_df.set_axis([f"Gene {g + 1}" 
@@ -37,15 +42,16 @@ def artificially_sample_cells(true_cells_df, capture_rate):
     where p = capture_rate (p := probability RNA is included in set)
     '''
     dropout_df = true_cells_df.copy()
-    return dropout_df.applymap(lambda n: np.sum(bernoulli.rvs(capture_rate, size=n)))
+    return dropout_df.applymap(lambda n: np.sum(bernoulli.rvs(capture_rate, size=n))) # binomial
 
 def run_create_synthetic_dataset_pipeline(
         output_path, 
         rna_species_char, 
         number_cells=100, 
-        capture_rate=0.6, 
+        capture_rate=0.15, 
         target_sum=1000, 
         p=0.5):
+
     ground_truth_file = output_path + "ground_truth_synth.h5ad"
     rounded_capture_rate = round(capture_rate, 2) # for visualization purposes
     dropout_file = output_path + f"dropout_capture_rate={rounded_capture_rate}_synth.h5ad"
@@ -58,6 +64,11 @@ def run_create_synthetic_dataset_pipeline(
 
     ground_truth_adata = sc.AnnData(ground_truth_df)
     dropout_adata = sc.AnnData(dropout_df)
+
+    if (target_sum == None):
+        # obtaining target sum for normalization
+        rna_counts = ground_truth_df.sum(axis=1)
+        target_sum = round(rna_counts.median())
 
     print("Saving h5ad of original counts...", flush=True)
     sc.pp.normalize_total(ground_truth_adata,  target_sum=target_sum, exclude_highly_expressed=True)

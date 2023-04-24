@@ -47,7 +47,7 @@ if __name__ == '__main__':
     results = pd.DataFrame(
         {
             "t": t_columns,
-            "knn": knn_dist_columns,
+            "knn_dist": knn_dist_columns,
             "rescaled": rescaled_columns,
             "MSE": mse_columns,
             "RMSRE": rmsre_columns,

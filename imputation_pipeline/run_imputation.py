@@ -13,7 +13,7 @@ if __name__ == '__main__':
 
     # Setup for generating synth cells
     output_path = "/Users/saulvegasauceda/Desktop/Kellis_UROP/synth_runs/"
-    TARGET_SUM = 1_000_000
+    TARGET_SUM = None
     CAPTURE_RATE = 0.15
     NUMBER_OF_CELLS = 10_000
     Rna_species_characteristic_numbers = [1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 20, 40, 60, 300, 40]
