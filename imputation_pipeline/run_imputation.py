@@ -38,6 +38,11 @@ if __name__ == '__main__':
         for t in t_selections:
             t_knn_dist_product.append((t, knn_dist))
 
+    # if (TARGET_SUM == None):
+    #     # obtaining target sum for normalization
+    #     rna_counts = ground_truth_adata.to_df().sum(axis=1)
+    #     TARGET_SUM = round(rna_counts.median())
+
     # using partial function to pass in default params
     run_magic_on_tenx = partial(
         run_magic, 
