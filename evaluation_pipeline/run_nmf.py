@@ -13,18 +13,28 @@ dropout_matrix = dropout_adata.X
 ground_truth_matrix = ground_truth_adata.X
 
 components = [
-    1, 2, 4, 6, 8, 10, 14, 20, 30
+    1, 2, 4, 6, 8, 10
 ]
 
 calculated_loss = [calculate_rmsre(dropout_matrix, ground_truth_matrix)]
 for dim in components:
-        
+    imputed_adata = dropout_adata.copy()
+
+    # Run NMF
     model = NMF(n_components=dim, init='nndsvda', random_state=0, solver='mu')
     W = model.fit_transform(dropout_matrix)
     H = model.components_
     imputed_matrix = W @ H
 
-    error = calculate_rmsre(ground_truth_matrix, imputed_matrix)
+    imputed_adata.X = imputed_matrix
+    sc.pp.normalize_total(imputed_adata, exclude_highly_expressed=True)
+
+    error = calculate_rmsre(ground_truth_matrix, imputed_adata.X)
     calculated_loss.append(error)
 
 average_loss = sum(calculated_loss) / len(calculated_loss)
+
+# saving results
+output_path = "/Users/saulvegasauceda/Desktop/Kellis_UROP/synth_runs/"
+output_file = output_path + "nmf_components=10_imputed_synth.h5ad"
+imputed_adata.write_h5ad(output_file, compression='gzip')
