@@ -1,7 +1,7 @@
 from numpy.random import seed
 from multiprocessing import Pool
 from functools import partial
-from sklearn.decomposition import NMF
+from nmf import nmf_imputation
 import os
 import warnings
 
@@ -12,7 +12,7 @@ if __name__ == '__main__':
     TARGET_SUM = 500
     NUMBER_OF_CELLS = 10_000
     CAPTURE_RATE = 0.30
-    
+
     # getting files
     path_to_dir = "/Users/saulvegasauceda/Documents/Spring_23/6.S052/data/"
     dropout_file = path_to_dir + "dropout_capture_rate={CAPTURE_RATE}.h5ad"
@@ -30,8 +30,8 @@ if __name__ == '__main__':
             param_grid.append((dims, alpha_W))
 
     # using partial function to pass in default params
-    run_magic_on_tenx = partial(
-        run_magic, 
+    run_imputation_on_tenx = partial(
+        nmf_imputation, 
         counts_adata=processed_tenx_adata, 
         target_sum=TARGET_SUM,
         output_path=output_path
@@ -40,7 +40,7 @@ if __name__ == '__main__':
     print("Processing running MAGIC...")
     CPUS_TO_USE = os.cpu_count() // 3
     with Pool(CPUS_TO_USE) as p:
-        p.map(run_magic_on_tenx, t_knn_dist_product)
+        p.map(run_imputation_on_tenx, param_grid)
 
     print("Done!")
 
