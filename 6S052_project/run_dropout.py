@@ -1,8 +1,10 @@
 import scanpy as sc
 import numpy as np
 import pandas as pd
-from scipy.stats import binom
 from numpy.random import seed
+from scipy.stats import rv_discrete
+from scipy.stats import nbinom
+from scipy.stats import bernoulli
 # import os
 # import warnings
 
@@ -13,14 +15,14 @@ def artificially_sample_cells(merfish, capture_rate):
     '''
 
     # Give MERFISH dataframe gene names for col names
-    merfish_df = merfish.to_df()
+    merfish_df = merfish.to_df().round(0).astype('Int64')
     ensmug_to_name = dict(zip(merfish.var.index, merfish.var["gene_name"]))
     merfish_df.rename(columns=ensmug_to_name, inplace=True)
 
     # Apply dropout method
     dropout_df = merfish_df.copy()
     dropout_df = dropout_df.applymap(
-        lambda n: binom(n, p=capture_rate))  # binomial
+        lambda n: np.sum(bernoulli.rvs(capture_rate, size=n)))  # binomial
 
     dropout_adata = sc.AnnData(dropout_df)
     return dropout_adata
@@ -34,7 +36,7 @@ if __name__ == '__main__':
 
     TARGET_SUM = 500
     NUMBER_OF_CELLS = 10_000
-    CAPTURE_RATE = 0.15
+    CAPTURE_RATE = 0.30
 
     sc.pp.filter_cells(merfish, min_counts=1, inplace=True)
     sc.pp.normalize_total(merfish, target_sum=TARGET_SUM,
@@ -44,7 +46,7 @@ if __name__ == '__main__':
     merfish = merfish[:NUMBER_OF_CELLS]
 
     print("Corrupting matrix")
-    dropout_adata = artifically_sample_cells(merfish, CAPTURE_RATE)
+    dropout_adata = artificially_sample_cells(merfish, CAPTURE_RATE)
     sc.pp.normalize_total(dropout_adata, target_sum=TARGET_SUM,
                           exclude_highly_expressed=False)
 
