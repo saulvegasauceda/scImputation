@@ -34,7 +34,7 @@ if __name__ == '__main__':
         output_path=output_path
     )
 
-    print("Processing running NMF imputation...")
+    print("Processing running MAGIC imputation...")
     CPUS_TO_USE = os.cpu_count() // 3
     with Pool(CPUS_TO_USE) as p:
         p.map(run_imputation_on_dropout, param_grid)

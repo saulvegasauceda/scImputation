@@ -16,8 +16,6 @@ def magic_imputation(t, counts_adata, target_sum, output_path):
     
     print(30*'-', flush=True)
     print("t:", t, flush=True)
-    print("knn_dist:", knn_dist, flush=True)
-    print(30*'-', flush=True)
 
     dropout_adata = counts_adata.X.copy()
     sc.pp.sqrt(dropout_adata) # sqrt transformation
