@@ -2,7 +2,7 @@ from numpy.random import seed
 from multiprocessing import Pool
 from functools import partial
 import scanpy as sc
-from magic import magic_imputation
+from magic_func import magic_imputation
 import os
 import warnings
 
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     dropout_adata = sc.read_h5ad(dropout_file)
 
     # Setup for grid search for MAGIC
-    param_grid = [i for i in range(0, 10)]
+    param_grid = [i for i in range(1, 11)]
 
     # using partial function to pass in default params
     run_imputation_on_dropout = partial(
