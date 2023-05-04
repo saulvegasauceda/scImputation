@@ -1,6 +1,7 @@
 from numpy.random import seed
 from multiprocessing import Pool
 from functools import partial
+import scanpy as sc
 from nmf import nmf_imputation
 import os
 import warnings
@@ -15,7 +16,8 @@ if __name__ == '__main__':
 
     # getting files
     path_to_dir = "/Users/saulvegasauceda/Documents/Spring_23/6.S052/data/"
-    dropout_file = path_to_dir + "dropout_capture_rate={CAPTURE_RATE}.h5ad"
+    output_path = "/Users/saulvegasauceda/Documents/Spring_23/6.S052/data/nmf/"
+    dropout_file = path_to_dir + "dropout_capture_rate=0.3.h5ad"
     merfish_file = path_to_dir + "merfish_norm.h5ad"
 
     merfish = sc.read_h5ad(merfish_file)
@@ -30,17 +32,16 @@ if __name__ == '__main__':
             param_grid.append((dims, alpha_W))
 
     # using partial function to pass in default params
-    run_imputation_on_tenx = partial(
-        nmf_imputation, 
-        counts_adata=processed_tenx_adata, 
+    run_imputation_on_dropout = partial(
+        nmf_imputation,
+        counts_adata=dropout_adata,
         target_sum=TARGET_SUM,
         output_path=output_path
-        )
+    )
 
-    print("Processing running MAGIC...")
+    print("Processing running NMF imputation...")
     CPUS_TO_USE = os.cpu_count() // 3
     with Pool(CPUS_TO_USE) as p:
-        p.map(run_imputation_on_tenx, param_grid)
+        p.map(run_imputation_on_dropout, param_grid)
 
     print("Done!")
-

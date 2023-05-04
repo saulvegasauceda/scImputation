@@ -5,8 +5,7 @@ from numpy.random import seed
 from scipy.stats import rv_discrete
 from scipy.stats import nbinom
 from scipy.stats import bernoulli
-# import os
-# import warnings
+
 
 def artificially_sample_cells(merfish, capture_rate):
     '''
@@ -51,5 +50,6 @@ if __name__ == '__main__':
                           exclude_highly_expressed=False)
 
     print("Saving adata files")
-    dropout_adata.write_h5ad(path_to_dir + f"dropout_capture_rate={CAPTURE_RATE}.h5ad", compression='gzip')
+    dropout_adata.write_h5ad(
+        path_to_dir + f"dropout_capture_rate={CAPTURE_RATE}.h5ad", compression='gzip')
     merfish.write_h5ad(path_to_dir + "merfish_norm.h5ad", compression='gzip')
