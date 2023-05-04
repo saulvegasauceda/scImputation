@@ -2,7 +2,9 @@ import scanpy as sc
 import numpy as np
 import pandas as pd
 from scipy.stats import binom
-
+from numpy.random import seed
+# import os
+# import warnings
 
 def artificially_sample_cells(merfish, capture_rate):
     '''
@@ -26,7 +28,7 @@ def artificially_sample_cells(merfish, capture_rate):
 
 if __name__ == '__main__':
     seed(1738)
-    path_to_dir = "/Users/saulvegasauceda/Documents/Spring_23/6.S052/data"
+    path_to_dir = "/Users/saulvegasauceda/Documents/Spring_23/6.S052/data/"
     merfish = sc.read_h5ad(
         "/Users/saulvegasauceda/Desktop/Kellis_UROP/BICCN/data/merfish.namespaced.h5ad")
 

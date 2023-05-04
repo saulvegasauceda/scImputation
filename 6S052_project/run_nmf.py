@@ -1,33 +1,46 @@
-import scanpy as sc
-import numpy as np
-import pandas as pd
-from scipy.stats import binom
-
+from numpy.random import seed
+from multiprocessing import Pool
+from functools import partial
 from sklearn.decomposition import NMF
-merfish = sc.read_h5ad("./data/merfish.namespaced.h5ad")
+import os
+import warnings
 
-TARGET_SUM = 500
-NUMBER_OF_CELLS = 10_000
+warnings.filterwarnings("ignore")
 
-sc.pp.filter_cells(merfish, min_counts=1, inplace=True)
-sc.pp.normalize_total(merfish, target_sum=TARGET_SUM,
-                      exclude_highly_expressed=False)
+if __name__ == '__main__':
+    seed(1738)
+    TARGET_SUM = 500
+    NUMBER_OF_CELLS = 10_000
+    CAPTURE_RATE = 0.30
+    
+    # getting files
+    path_to_dir = "/Users/saulvegasauceda/Documents/Spring_23/6.S052/data/"
+    dropout_file = path_to_dir + "dropout_capture_rate={CAPTURE_RATE}.h5ad"
+    merfish_file = path_to_dir + "merfish_norm.h5ad"
 
-# sample out 10_000 so I can run it fast
-merfish = merfish[:NUMBER_OF_CELLS]
+    merfish = sc.read_h5ad(merfish_file)
+    dropout_adata = sc.read_h5ad(dropout_file)
 
+    # Setup for grid search for nmf
+    n_components_params = [1, 5, 10, 20, 40, 50, 100]
+    alpha_W_params = [0, 0.2, 0.5, 0.7, 1]
+    param_grid = []
+    for dims in n_components_params:
+        for alpha_W in alpha_W_params:
+            param_grid.append((dims, alpha_W))
 
-def artificially_sample_cells(merfish, capture_rate):
-    '''
-    Simulating Bernoulli sampling with synthetic dataset 
-    where p = capture_rate (p := probability RNA is included in set)
-    '''
+    # using partial function to pass in default params
+    run_magic_on_tenx = partial(
+        run_magic, 
+        counts_adata=processed_tenx_adata, 
+        target_sum=TARGET_SUM,
+        output_path=output_path
+        )
 
-    # Give MERFISH dataframe gene names for col names
-    merfish_df = merfish.to_df()
-    ensmug_to_name = dict(zip(merfish.var.index, merfish.var["gene_name"]))
-    merfish_df.rename(columns=ensmug_to_name, inplace=True)
+    print("Processing running MAGIC...")
+    CPUS_TO_USE = os.cpu_count() // 3
+    with Pool(CPUS_TO_USE) as p:
+        p.map(run_magic_on_tenx, t_knn_dist_product)
 
-    # Apply dropout method
-    dropout_df = merfish_df.copy()
-    return dropout_df.applymap(lambda n: binom(n, p=capture_rate))  # binomial
+    print("Done!")
+
