@@ -1,7 +1,7 @@
-import magic
-import scanpy as sc
+import copy
 import numpy as np
-import scanpy.external as sce
+from sklearn.linear_model import Ridge
+import scanpy as sc
 
 
 def fit_linear_regression_model(X, y, lmbd):
@@ -106,7 +106,7 @@ def get_gene_counts_for_gene(gene_k, Y):
     has_expression = np.arange(Y.shape[0])[has_expression_bool]
     return Y_gene, has_expression
 
-def run_alternating_least_squares(Y, d=10, lmbd=0.1, n_it=20, verbose=False, print_n=1):
+def run_alternating_least_squares(Y, d=10, lmbd=0.1, n_it=50, verbose=False, print_n=1):
     '''
     Runs the alternating least squares algorithm for matrix factorization.
     Estimates the matrix underlying observations Y as X = UV^T, where
@@ -193,23 +193,25 @@ def run_alternating_least_squares(Y, d=10, lmbd=0.1, n_it=20, verbose=False, pri
         it += 1
     return U, V
 
-def run_als_imputation(dims_lambda_pair, counts_data, n_it=20, output_path="/", verbose=False, print_n=1):
+def als_imputation(dims_lambda_pair, counts_adata, target_sum=None, output_path="/", verbose=False, print_n=1):
     """
     Computes the resulting imputed matrix
     """
     assert output_path[-1] == "/", "output_path must end with forwardslash '/'"
     dims, lmd = dims_lambda_pair
 
-    imputed_file = output_path + f"als_t={t}_imputed.h5ad"
+    imputed_file = output_path + f"als_dims={dims}_lambda={lmd}_imputed.h5ad"
 
     print(30*'-', flush=True)
-    print("t:", t, flush=True)
+    print("dim:", dims, flush=True)
+    print("lambda:", lmd, flush=True)
+    print(30*'-', flush=True)
     
-    imputed_adata = counts_data.copy()
-    dropout_matrix = counts_data.X.copy()
+    imputed_adata = counts_adata.copy()
+    dropout_matrix = counts_adata.X.copy()
 
     U, V = run_alternating_least_squares(dropout_matrix, dims, lmd)
-    imputed_matrix = U @ V
+    imputed_matrix = U @ V.T
 
     # setting values to be positive
     negatives = np.where(imputed_matrix < 0)
