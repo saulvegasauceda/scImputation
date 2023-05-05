@@ -8,10 +8,34 @@ import os
 import warnings
 
 
-def rmse(dropout_file, true_counts_adata):
+def calculate_rmse(dropout_file, true_counts_adata):
     imputed_counts = sc.read_h5ad(dropout_file)
     imputed, merfish = imputed_counts.X, true_counts_adata.X
     return np.sqrt(np.square(np.subtract(imputed, merfish)).mean())
+
+def calculate_rmsre(actual_file, desired_adata):
+    """
+    Calculating RMSRE according to: https://stats.stackexchange.com/q/413217
+
+    Inputs: 
+        dropout_file: path to adata of gene counts
+        true_counts_adata: adata of true counts
+    Returns:
+        rmsre: scalar value of root mean square relative error
+    """
+    actual_adata = sc.read_h5ad(actual_file)
+    actual, desired = actual_adata.X, desired_adata.X
+    residual = (desired - actual)
+
+    # if desired entries is 0: set to 1 so calculation is analogous to MSE
+    augmented_desired = desired.copy()
+    augmented_desired[np.where(augmented_desired == 0)] = 1
+
+    relative_residual = np.divide(residual, augmented_desired)
+
+    squared_relative_residual = np.square(relative_residual)
+    rmsre = np.sqrt(squared_relative_residual.mean(axis=None))
+    return rmsre
 
 
 warnings.filterwarnings("ignore")
@@ -25,7 +49,7 @@ if __name__ == '__main__':
     # getting files
     path_to_dir = "/Users/saulvegasauceda/Documents/Spring_23/6.S052/data/"
     input_path = "/Users/saulvegasauceda/Documents/Spring_23/6.S052/data/nmf/"
-    dropout_file = path_to_dir + "dropout_capture_rate=0.3.h5ad"
+    dropout_file = path_to_dir + f"dropout_capture_rate={CAPTURE_RATE}.h5ad"
     merfish_file = path_to_dir + "merfish_norm.h5ad"
     output_file = path_to_dir + "nmf_evaluation.csv"
 
@@ -34,36 +58,36 @@ if __name__ == '__main__':
     # Setup to retrieve grid search files
     n_components_params = [1, 5, 10, 20, 40, 50, 100]
     alpha_W_params = [0, 0.2, 0.5, 0.7, 1]
-    dropout_files = []
+    imputed_files = []
     parameters = []
     for dims in n_components_params:
         for alpha_W in alpha_W_params:
             file = input_path + f"nmf_dims={dims}_alpha={alpha_W}_imputed.h5ad"
             parameters.append((dims, alpha_W))
-            dropout_files.append(file)
+            imputed_files.append(file)
 
     # using partial function to pass in default params
     run_evaluation_pipeline = partial(
-        rmse,
-        true_counts_adata=merfish,
+        calculate_rmsre,
+        desired_adata=merfish,
     )
 
     print("Evaluating NMF imputation...")
     CPUS_TO_USE = os.cpu_count() // 3
     with Pool(CPUS_TO_USE) as p:
-        rmse_column = p.map(run_evaluation_pipeline, dropout_files)
+        rmsre_column = p.map(run_evaluation_pipeline, imputed_files)
 
     n_components_column, alpha_W_column = zip(*parameters)
     # Adding non-imputed dropout counts
     n_components_column = (np.NAN,) + n_components_column
     alpha_W_column = (np.NAN,) + alpha_W_column
-    rmse_column = [rmse(dropout_file, merfish)] + rmse_column
+    rmsre_column = [calculate_rmsre(dropout_file, merfish)] + rmsre_column
 
     results = pd.DataFrame(
         {
             "n_components": n_components_column,
             "alpha_w": alpha_W_column,
-            "RMSE": rmse_column,
+            "RMSRE": rmsre_column,
         }
     )
 
