@@ -8,10 +8,10 @@ import os
 import warnings
 
 
-def calculate_rmse(dropout_file, true_counts_adata):
-    imputed_counts = sc.read_h5ad(dropout_file)
-    imputed, merfish = imputed_counts.X, true_counts_adata.X
-    return np.sqrt(np.square(np.subtract(imputed, merfish)).mean())
+def calculate_rmse(actual_file, desired_adata):
+    actual_adata = sc.read_h5ad(actual_file)
+    actual, desired = actual_adata.X, desired_adata.X
+    return np.sqrt(np.square(np.subtract(actual, desired)).mean())
 
 
 def calculate_rmsre(actual_file, desired_adata):
@@ -19,7 +19,7 @@ def calculate_rmsre(actual_file, desired_adata):
     Calculating RMSRE according to: https://stats.stackexchange.com/q/413217
 
     Inputs: 
-        dropout_file: path to adata of gene counts
+        actual_file: path to adata of gene counts
         true_counts_adata: adata of true counts
     Returns:
         rmsre: scalar value of root mean square relative error
@@ -38,6 +38,7 @@ def calculate_rmsre(actual_file, desired_adata):
     rmsre = np.sqrt(squared_relative_residual.mean(axis=None))
     return rmsre
 
+
 def rmse_ignore_zeros(actual_file, desired_adata):
     actual_adata = sc.read_h5ad(actual_file)
     actual, desired = actual_adata.X, desired_adata.X
@@ -53,9 +54,9 @@ warnings.filterwarnings("ignore")
 
 if __name__ == '__main__':
     seed(1738)
-    TARGET_SUM = 500
+    TARGET_SUM = 300
     NUMBER_OF_CELLS = 10_000
-    CAPTURE_RATE = 0.30
+    CAPTURE_RATE = 0.15
 
     # getting files
     path_to_dir = "/Users/saulvegasauceda/Documents/Spring_23/6.S052/data/"
@@ -68,11 +69,12 @@ if __name__ == '__main__':
 
     # Setup to retrieve grid search files
     t_column = [i for i in range(1, 11)]
-    imputed_files = [input_path + f"magic_t={t}_imputed.h5ad" for t in range(1, 11)]
+    imputed_files = [input_path +
+                     f"magic_t={t}_imputed.h5ad" for t in range(1, 11)]
 
     # using partial function to pass in default params
     run_evaluation_pipeline = partial(
-        rmse_ignore_zeros,
+        calculate_rmse,
         desired_adata=merfish,
     )
 
@@ -83,7 +85,7 @@ if __name__ == '__main__':
 
     # Adding non-imputed dropout counts
     t_column = [np.NAN] + t_column
-    rmse_column = [rmse_ignore_zeros(dropout_file, merfish)] + rmse_column
+    rmse_column = [calculate_rmse(dropout_file, merfish)] + rmse_column
 
     results = pd.DataFrame(
         {

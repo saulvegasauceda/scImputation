@@ -33,10 +33,11 @@ if __name__ == '__main__':
     merfish = sc.read_h5ad(
         "/Users/saulvegasauceda/Desktop/Kellis_UROP/BICCN/data/merfish.namespaced.h5ad")
 
-    TARGET_SUM = 500
+    TARGET_SUM = 300
     NUMBER_OF_CELLS = 10_000
-    CAPTURE_RATE = 0.30
+    CAPTURE_RATE = 0.15
 
+    sc.pp.filter_genes(merfish, min_counts=1, inplace=True)
     sc.pp.filter_cells(merfish, min_counts=1, inplace=True)
     sc.pp.normalize_total(merfish, target_sum=TARGET_SUM,
                           exclude_highly_expressed=False)

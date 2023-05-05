@@ -54,13 +54,13 @@ warnings.filterwarnings("ignore")
 
 if __name__ == '__main__':
     seed(1738)
-    TARGET_SUM = 500
+    TARGET_SUM = 300
     NUMBER_OF_CELLS = 10_000
-    CAPTURE_RATE = 0.30
+    CAPTURE_RATE = 0.15
 
     # getting files
     path_to_dir = "/Users/saulvegasauceda/Documents/Spring_23/6.S052/data/"
-    input_path = "/Users/saulvegasauceda/Documents/Spring_23/6.S052/data/als/"
+    input_path = path_to_dir + "als/"
     dropout_file = path_to_dir + f"dropout_capture_rate={CAPTURE_RATE}.h5ad"
     merfish_file = path_to_dir + "merfish_norm.h5ad"
     output_file = path_to_dir + "als_evaluation.csv"
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     # Setup to retrieve grid search files
     # Setup for grid search for als
     n_components_params = [10, 20, 40, 50, 100]
-    lambda_params = [0.1, 0.4, 0.7]
+    lambda_params = [0.1, 0.4, 0.7, 1]
     parameters = []
     imputed_files = []
     for dims in n_components_params:
@@ -81,7 +81,7 @@ if __name__ == '__main__':
 
     # using partial function to pass in default params
     run_evaluation_pipeline = partial(
-        rmse_ignore_zeros,
+        calculate_rmse,
         desired_adata=merfish,
     )
 
@@ -94,7 +94,7 @@ if __name__ == '__main__':
     # Adding non-imputed dropout counts
     n_components_column = (np.NAN,) + n_components_column
     lambda_column = (np.NAN,) + lambda_column
-    rmse_column = [rmse_ignore_zeros(dropout_file, merfish)] + rmse_column
+    rmse_column = [calculate_rmse(dropout_file, merfish)] + rmse_column
 
     results = pd.DataFrame(
         {

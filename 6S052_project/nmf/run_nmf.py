@@ -10,9 +10,9 @@ warnings.filterwarnings("ignore")
 
 if __name__ == '__main__':
     seed(1738)
-    TARGET_SUM = 500
+    TARGET_SUM = 300
     NUMBER_OF_CELLS = 10_000
-    CAPTURE_RATE = 0.30
+    CAPTURE_RATE = 0.15
 
     # getting files
     path_to_dir = "/Users/saulvegasauceda/Documents/Spring_23/6.S052/data/"

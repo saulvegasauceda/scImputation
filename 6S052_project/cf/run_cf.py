@@ -10,14 +10,14 @@ warnings.filterwarnings("ignore")
 
 if __name__ == '__main__':
     seed(1738)
-    TARGET_SUM = 500
+    TARGET_SUM = 300
     NUMBER_OF_CELLS = 10_000
-    CAPTURE_RATE = 0.30
+    CAPTURE_RATE = 0.15
 
     # getting files
     path_to_dir = "/Users/saulvegasauceda/Documents/Spring_23/6.S052/data/"
     output_path = "/Users/saulvegasauceda/Documents/Spring_23/6.S052/data/als/"
-    dropout_file = path_to_dir + "dropout_capture_rate=0.3.h5ad"
+    dropout_file = path_to_dir + f"dropout_capture_rate={CAPTURE_RATE}.h5ad"
     merfish_file = path_to_dir + "merfish_norm.h5ad"
 
     merfish = sc.read_h5ad(merfish_file)
@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     # Setup for grid search for als
     n_components_params = [10, 20, 40, 50, 100]
-    lambda_params = [0.1, 0.4, 0.7]
+    lambda_params = [0.1, 0.4, 0.7, 1]
     param_grid = []
     for dims in n_components_params:
         for lmd in lambda_params:
