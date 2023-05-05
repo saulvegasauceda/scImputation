@@ -23,7 +23,7 @@ if __name__ == '__main__':
     merfish = sc.read_h5ad(merfish_file)
     dropout_adata = sc.read_h5ad(dropout_file)
 
-    # Setup for grid search for nmf
+    # Setup for grid search for als
     n_components_params = [10, 20, 40, 50, 100]
     lambda_params = [0.1, 0.4, 0.7]
     param_grid = []
